@@ -1,26 +1,23 @@
+import configparser
 import os
-import requests  # request img from web
 import shutil  # save img locally
 import uuid
-
-import keyboard
-import lxml
-from bs4 import BeautifulSoup
-from colorama import Fore, Style, init, AnsiToWin32
-from htmldocx import HtmlToDocx
-import re
 from datetime import datetime
 
+import keyboard
+import requests  # request img from web
+from bs4 import BeautifulSoup
+from colorama import Fore
+from htmldocx import HtmlToDocx
 from redminelib import Redmine
-import configparser
 
 
-def ReadConfig(configfilepath):
+def ReadConfig(filepath):
     print(f'{Fore.YELLOW}Start ReadConfig')
 
-    if os.path.exists(configfilepath):
+    if os.path.exists(filepath):
         config = configparser.ConfigParser()
-        config.read(configfilepath)
+        config.read(filepath)
         config.sections()
 
         global glhost
@@ -38,18 +35,18 @@ def ReadConfig(configfilepath):
         config = configparser.ConfigParser()
         config.add_section("Settings")
 
-        config.set("Settings", "host", r'http://192.168.1.1')
-        config.set("Settings", "apikey", r'dq3inqgnqe8igqngninkkvekmviewrgir9384')
-        config.set("Settings", "issuesid", r'1677;318')
+        config.set("Settings", "host", 'http://192.168.1.1')
+        config.set("Settings", "apikey", 'dq3inqgnqe8igqngninkkvekmviewrgir9384')
+        config.set("Settings", "issuesid", '1677;318')
 
-        with open(configfilepath, "w") as config_file:
+        with open(filepath, "w") as config_file:
             config.write(config_file)
 
-        print(f'{Fore.GREEN}Create config: {Fore.BLUE}{configfilepath},{config_file}')
+        print(f'{Fore.GREEN}Create config: {Fore.BLUE}{filepath},{config_file}')
         return False
 
 
-def writedocx(issueDescription, filename):
+def WriteDocx(issueDescription, filename):
     print(f'{Fore.YELLOW}Write *.docx: {filename}')
 
     new_parser = HtmlToDocx()
@@ -109,10 +106,9 @@ def main():
 
             # 3 Create *.docx
             issuefilename = os.path.join(downloadDirectory, f'Issue - {issueid}.docx')
-            writedocx(issueDescription, issuefilename)
+            WriteDocx(issueDescription, issuefilename)
 
             print(f'{Fore.CYAN}_________________________________________________________')
-
 
 
 if __name__ == "__main__":
