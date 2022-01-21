@@ -1,0 +1,18 @@
+# created by virtualenv automatically
+20*
+*.cfg
+*.jpg
+*.css
+*.docx
+*.html
+*.spec
+__pycache__
+build
+CompileSave
+dist
+.idea/
+Include/
+Lib/
+Scripts/
+pyvenv.cfg
+config.cfg
