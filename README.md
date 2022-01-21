@@ -5,6 +5,7 @@
    2. apikey, *RedMine - User - API key*, RESTAPI must by On (example: **aldjfoeiwgj9348gn348**)
    2. issuesid, convert Issue ID list split *";"* (example: **1;2;114;9123**)
 3. Run
+
 ##Sample config.cfg
 ```
 [Settings]
