@@ -13,6 +13,8 @@
    2. issuesid, список Issue ID разделенных *";"* (например: **1;2;114;9123**)
 3. Запустить 
 
+![alt text](https://github.com/MasyGreen/RedMine.IssueToDocx/blob/master/Settings%20manual%20(config.cfg).jpg)
+
 ##Sample config.cfg
 ```
 [Settings]
