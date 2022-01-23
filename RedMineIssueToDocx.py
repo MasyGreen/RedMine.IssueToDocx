@@ -21,13 +21,27 @@ def ReadConfig(filepath):
         config.sections()
 
         global glhost
-        glhost = str(config.get("Settings", "host"))
+        glhost = config.has_option("Settings", "host") and config.get("Settings", "host") or None
 
         global glapikey
-        glapikey = config.get("Settings", "apikey")
+        glapikey = config.has_option("Settings", "apikey") and config.get("Settings", "apikey") or None
 
         global glissuesid
-        glissuesid = config.get("Settings", "issuesid")
+        glissuesid = config.has_option("Settings", "issuesid") and config.get("Settings", "issuesid") or None
+
+        global glcombine
+        varstr = config.has_option("Settings", "combine") and config.get("Settings", "combine") or None
+        if varstr == 'true':
+            glcombine = True
+        else:
+            glcombine = False
+
+        global glsaveimg
+        varstr = config.has_option("Settings", "saveimg") and config.get("Settings", "saveimg") or None
+        if varstr == 'true':
+            glsaveimg = True
+        else:
+            glsaveimg = False
 
         return True
     else:
@@ -38,6 +52,8 @@ def ReadConfig(filepath):
         config.set("Settings", "host", 'http://192.168.1.1')
         config.set("Settings", "apikey", 'dq3inqgnqe8igqngninkkvekmviewrgir9384')
         config.set("Settings", "issuesid", '1677;318')
+        config.set("Settings", "saveimg", 'false')
+        config.set("Settings", "combine", 'false')
 
         with open(filepath, "w") as config_file:
             config.write(config_file)
@@ -67,6 +83,9 @@ def main():
     print()
     print(f'{Fore.CYAN}===========================================================================')
     indx = 0
+
+    imagesavelist = []
+    issueCombineDescription = ''
     for issueid in issueidlist:
         if issueid.isdigit():
             indx = indx + 1
@@ -89,6 +108,7 @@ def main():
                 xfilename, xfile_extension = os.path.splitext(pathImg)
                 newImgName = f'{uuid.uuid4()}{xfile_extension}'
                 newImPath = os.path.join(downloadDirectory, newImgName)
+                imagesavelist.append(newImPath) # save list download Img file
                 print(f'{Fore.BLUE}Download Img: {pathImg} -> {newImPath=}')
                 dowloadLink = f"{pathImg}?key={glapikey}"
                 print(f'{dowloadLink=}')
@@ -105,11 +125,30 @@ def main():
                 print()
 
             # 3 Create *.docx
-            issuefilename = os.path.join(downloadDirectory, f'Issue - {issueid}.docx')
-            WriteDocx(issueDescription, issuefilename)
+            if not glcombine:
+                issuefilename = os.path.join(downloadDirectory, f'Issue - {issueid}.docx')
+                WriteDocx(issueDescription, issuefilename)
+            else:
+                issueDescription = f'<h1>Сохранение: Issue {issueid}</h1>{issueDescription}'
+                issueCombineDescription = issueCombineDescription + issueDescription
+
 
             print(f'{Fore.CYAN}_________________________________________________________')
 
+
+    # Combine one file
+    if glcombine:
+        issuefilename = os.path.join(downloadDirectory, f'IssueCombine.docx')
+        WriteDocx(issueCombineDescription, issuefilename)
+
+    # Delete Img file
+    if not glsaveimg:
+        for file in imagesavelist:
+            if os.path.isfile(file):
+                os.remove(file)
+
+    print(f'{Fore.CYAN}Process completed, press Space...')
+    keyboard.wait("space")
 
 if __name__ == "__main__":
     print(f"{Fore.CYAN}Last update: Cherepanov Maxim masygreen@gmail.com (c), 01.2022")

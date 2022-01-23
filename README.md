@@ -1,42 +1,61 @@
-#Convert RedMine Issue to DOCX
+# Convert RedMine Issue to DOCX
 
-1. Set settings in **config.cfg** (run once to create struct file)
-   1. host, IP or DNS RedMine name (example: **http://192.168.1.1**)
-   2. apikey, *[RedMine - User - API key]*, RESTAPI must by On (example: **aldjfoeiwgj9348gn348**)
-   2. issuesid, convert Issue ID list split *";"* (example: **1;2;114;9123**)
+1. Set settings in **config.cfg** (run once *.exe to create struct file)
+   1. [host], IP or DNS RedMine name (example: **http://192.168.1.1**)
+   2. [apikey], *RedMine - User - API key*, RESTAPI must by On (example: **aldjfoeiwgj9348gn348**)
+   3. [issuesid], convert Issue ID list split *";"* (example: **1;2;114;9123**)
+   4. [saveimg], save Image in Folder (example: **true**)
+   5. [combine], combine result in one file **IssueCombine.docx** (example: **false**)
 2. Run
 
 ========================================================================
-1. Настроить **config.cfg** (запустить единожды для создания шаблона файла)
-   1. host, IP или DNS имя RedMine (например: **http://192.168.1.1**)
-   2. apikey, *[RedMine - Моя учетная запись - Ключ доступа к API]*, RESTAPI должен быть глобально включен Администратором (например: **aldjfoeiwgj9348gn348**)
-   2. issuesid, список Issue ID разделенных *";"* (например: **1;2;114;9123**)
+1. Настроить **config.cfg** (запустить единожды *.exe для создания шаблона файла)
+   1. [host], IP или DNS имя RedMine (например: **http://192.168.1.1**)
+   2. [apikey], *RedMine - Моя учетная запись - Ключ доступа к API*, RESTAPI должен быть глобально включен Администратором (например: **aldjfoeiwgj9348gn348**)
+   3. [issuesid], список Issue ID разделенных *";"* (например: **1;2;114;9123**)
+   4. [saveimg], сохранить картинки в той же директории (example: **true**)
+   5. [combine], объединить результат в один файл **IssueCombine.docx** (example: **false**)
+
 3. Запустить 
 
 ![alt text](https://github.com/MasyGreen/RedMine.IssueToDocx/blob/master/Settings%20manual%20(config.cfg).jpg)
 
-##Sample config.cfg
+## Sample config.cfg
 ```
 [Settings]
 host = http://192.168.1.1
 apikey = dq3inqgnqe8igqngninkkvekmviewrgir9384
 issuesid = 1677;318
+saveimg = false
+combine = false
 ```
 
-#Result
-Util crete files name *"Issue - [Issue ID].docx"* in new Folder
+# Result
+Util crete files name *"Issue - [Issue ID].docx"* in new Folder or one file *IssueCombine.docx*
 
-#How use pyinstaller whit HtmlToDocx
+# How use pyinstaller whit HtmlToDocx
 
-1. Run in CMD: *pyinstaller -F -i "Icon.ico" RedMineIssueToDocx.py*
-2. Edit **RedMineIssueToDocx.spec**? 
-   1. Add at first line **import sys**
-   2. Add at first line **from os import path**
-   3. Update section in Analysis, datas=**[(path.join("c:\\Python38\\Lib\\site-packages","docx","templates"), "docx/templates")]** where *c:\\Python38\\Lib\\site-packages* is your path to *docx/templates* folder
-3. Run in CMD: *pyinstaller RedMineIssueToDocx.spec*
-4. Result in **dist\RedMineIssueToDocx.exe**
+1. Run in CMD
 
-##Sample RedMineIssueToDocx.spec
+```
+pyinstaller -F -i "Icon.ico" RedMineIssueToDocx.py
+```
+
+2. Edit *RedMineIssueToDocx.spec*
+   1. Add at first line *import sys* and *from os import path*
+   2. Update section in Analysis, where *c:\\Python38\\Lib\\site-packages* is your path to *docx/templates* folder:
+
+```
+datas=[(path.join("c:\\Python38\\Lib\\site-packages","docx","templates"), "docx/templates")]
+```
+   5. Run in CMD
+
+```
+pyinstaller RedMineIssueToDocx.spec
+```
+   6. Result in **dist\RedMineIssueToDocx.exe**
+
+## Sample RedMineIssueToDocx.spec
 ```
 # -*- mode: python ; coding: utf-8 -*-
 
