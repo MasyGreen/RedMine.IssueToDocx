@@ -6,6 +6,7 @@
    3. [issuesid], convert Issue ID list split *";"* (example: **1;2;114;9123**)
    4. [saveimg], save Image in Folder (example: **true**)
    5. [combine], combine result in one file **IssueCombine.docx** (example: **false**)
+
 2. Run
 
 ========================================================================
@@ -16,7 +17,7 @@
    4. [saveimg], сохранить картинки в той же директории (example: **true**)
    5. [combine], объединить результат в один файл **IssueCombine.docx** (example: **false**)
 
-3. Запустить 
+2. Запустить 
 
 ![alt text](https://github.com/MasyGreen/RedMine.IssueToDocx/blob/master/Settings%20manual%20(config.cfg).jpg)
 
