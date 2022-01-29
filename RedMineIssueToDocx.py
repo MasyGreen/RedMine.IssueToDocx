@@ -81,7 +81,11 @@ def WriteDocx(issueDescription, filename):
 def DownloadIMG(description, imgScrs, downloadDirectory, imagesavelist):
     for item in imgScrs:
         imgScr = item.get("src")
+
         pathImg = f'{glhost}/{imgScr}'
+        if imgScr.startswith('http'):
+            pathImg = imgScr
+
         print(f'{Fore.BLUE}{pathImg=}')
 
         xfilename, xfile_extension = os.path.splitext(pathImg)
@@ -89,7 +93,11 @@ def DownloadIMG(description, imgScrs, downloadDirectory, imagesavelist):
         newImPath = os.path.join(downloadDirectory, newImgName)
         imagesavelist.append(newImPath)  # save list download Img file
         print(f'{Fore.BLUE}Download Img: {pathImg} -> {newImPath=}')
+
         dowloadLink = f"{pathImg}?key={glapikey}"
+        if imgScr.startswith('http'):
+            owloadLink = f"{pathImg}"
+
         print(f'{dowloadLink=}')
         print(f'{Fore.MAGENTA}Replace: {str(imgScr)} to {str(newImPath)}')
 
@@ -102,7 +110,7 @@ def DownloadIMG(description, imgScrs, downloadDirectory, imagesavelist):
         # Replace Img link to local path
         description = description.replace(str(imgScr), str(newImPath))
 
-        return description
+    return description
 
 
 def main():
@@ -169,7 +177,6 @@ def main():
                     # 2.1 Collect Scr list
                     soup = BeautifulSoup(wikiDescription, "lxml")
                     imgScrs = soup.findAll("img")
-
                     # 2.2 Download image from Src
                     wikiDescription = DownloadIMG(wikiDescription, imgScrs, downloadDirectory, imagesavelist)
                     print()
@@ -182,9 +189,7 @@ def main():
                         wikiDescription = f'<h1>Сохранение: Wiki {wikiname}</h1>{wikiDescription}'
                         wikiCombineDescription = wikiCombineDescription + wikiDescription
 
-
         print(f'{Fore.CYAN}_________________________________________________________')
-
 
     # Combine one file
     if glcombine:
