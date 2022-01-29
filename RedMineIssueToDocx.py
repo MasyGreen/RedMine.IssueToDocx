@@ -17,7 +17,7 @@ def ReadConfig(filepath):
 
     if os.path.exists(filepath):
         config = configparser.ConfigParser()
-        config.read(filepath)
+        config.read(filepath, "utf8")
         config.sections()
 
         global glhost
@@ -43,6 +43,13 @@ def ReadConfig(filepath):
         else:
             glsaveimg = False
 
+        global gliswiki
+        varstr = config.has_option("Settings", "iswiki") and config.get("Settings", "iswiki") or None
+        if varstr == 'true':
+            gliswiki = True
+        else:
+            gliswiki = False
+
         return True
     else:
         print(f'{Fore.YELLOW}Start create_config')
@@ -54,6 +61,7 @@ def ReadConfig(filepath):
         config.set("Settings", "issuesid", '1677;318')
         config.set("Settings", "saveimg", 'false')
         config.set("Settings", "combine", 'false')
+        config.set("Settings", "iswiki", 'false')
 
         with open(filepath, "w") as config_file:
             config.write(config_file)
@@ -68,6 +76,33 @@ def WriteDocx(issueDescription, filename):
     new_parser = HtmlToDocx()
     docx = new_parser.parse_html_string(issueDescription)
     docx.save(filename)
+
+
+def DownloadIMG(description, imgScrs, downloadDirectory, imagesavelist):
+    for item in imgScrs:
+        imgScr = item.get("src")
+        pathImg = f'{glhost}/{imgScr}'
+        print(f'{Fore.BLUE}{pathImg=}')
+
+        xfilename, xfile_extension = os.path.splitext(pathImg)
+        newImgName = f'{uuid.uuid4()}{xfile_extension}'
+        newImPath = os.path.join(downloadDirectory, newImgName)
+        imagesavelist.append(newImPath)  # save list download Img file
+        print(f'{Fore.BLUE}Download Img: {pathImg} -> {newImPath=}')
+        dowloadLink = f"{pathImg}?key={glapikey}"
+        print(f'{dowloadLink=}')
+        print(f'{Fore.MAGENTA}Replace: {str(imgScr)} to {str(newImPath)}')
+
+        # Download img
+        res = requests.get(dowloadLink, stream=True)
+        if res.status_code == 200:
+            with open(newImPath, 'wb') as f:
+                shutil.copyfileobj(res.raw, f)
+
+        # Replace Img link to local path
+        description = description.replace(str(imgScr), str(newImPath))
+
+        return description
 
 
 def main():
@@ -86,60 +121,81 @@ def main():
 
     imagesavelist = []
     issueCombineDescription = ''
+    wikiCombineDescription = ''
     for issueid in issueidlist:
-        if issueid.isdigit():
+        print(f'{issueid=}')
+        if issueid != "":
             indx = indx + 1
             print(f'{Fore.GREEN}Process {indx}: {issueid=}')
-            # 1 Get RedMine Issue Description
-            issue = redmine.issue.get(issueid, include=[])
-            issueDescription = issue.description
+            print(f'{gliswiki=}')
 
-            # Process image
-            # 2.1 Collect Scr list
-            soup = BeautifulSoup(issueDescription, "lxml")
-            imgScrs = soup.findAll("img")
+            if not gliswiki:
+                if issueid.isdigit():
+                    print(f'Get RedMine Issue Description: {issueid=}')
 
-            # 2.2 Download image from Src
-            for item in imgScrs:
-                imgScr = item.get("src")
-                pathImg = f'{glhost}/{imgScr}'
-                print(f'{Fore.BLUE}{pathImg=}')
+                    # 1 Get RedMine Issue Description
+                    issue = redmine.issue.get(issueid, include=[])
+                    issueDescription = issue.description
 
-                xfilename, xfile_extension = os.path.splitext(pathImg)
-                newImgName = f'{uuid.uuid4()}{xfile_extension}'
-                newImPath = os.path.join(downloadDirectory, newImgName)
-                imagesavelist.append(newImPath) # save list download Img file
-                print(f'{Fore.BLUE}Download Img: {pathImg} -> {newImPath=}')
-                dowloadLink = f"{pathImg}?key={glapikey}"
-                print(f'{dowloadLink=}')
-                print(f'{Fore.MAGENTA}Replace: {str(imgScr)} to {str(newImPath)}')
+                    # Process image
+                    # 2.1 Collect Scr list
+                    soup = BeautifulSoup(issueDescription, "lxml")
+                    imgScrs = soup.findAll("img")
 
-                # Download img
-                res = requests.get(dowloadLink, stream=True)
-                if res.status_code == 200:
-                    with open(newImPath, 'wb') as f:
-                        shutil.copyfileobj(res.raw, f)
+                    # 2.2 Download image from Src
+                    issueDescription = DownloadIMG(issueDescription, imgScrs, downloadDirectory, imagesavelist)
+                    print()
 
-                # Replace Img link to local path
-                issueDescription = issueDescription.replace(str(imgScr), str(newImPath))
-                print()
-
-            # 3 Create *.docx
-            if not glcombine:
-                issuefilename = os.path.join(downloadDirectory, f'Issue - {issueid}.docx')
-                WriteDocx(issueDescription, issuefilename)
+                    # 3 Create *.docx
+                    if not glcombine:
+                        exportfilename = os.path.join(downloadDirectory, f'Issue - {issueid}.docx')
+                        WriteDocx(issueDescription, exportfilename)
+                    else:
+                        issueDescription = f'<h1>Сохранение: Issue {issueid}</h1>{issueDescription}'
+                        issueCombineDescription = issueCombineDescription + issueDescription
             else:
-                issueDescription = f'<h1>Сохранение: Issue {issueid}</h1>{issueDescription}'
-                issueCombineDescription = issueCombineDescription + issueDescription
+                print(f'Get RedMine Wiki Description: {issueid=}')
+
+                issueiditem = issueid.split('/')
+                if len(issueiditem) == 3:
+                    projectid = issueiditem[0]
+                    wikiname = issueiditem[2]
+
+                    # 1 Get RedMine Wiki Description
+                    wiki = redmine.wiki_page.get(wikiname, project_id=projectid, include=[])
+                    wikiDescription = wiki.text
+
+                    # Process image
+                    # 2.1 Collect Scr list
+                    soup = BeautifulSoup(wikiDescription, "lxml")
+                    imgScrs = soup.findAll("img")
+
+                    # 2.2 Download image from Src
+                    wikiDescription = DownloadIMG(wikiDescription, imgScrs, downloadDirectory, imagesavelist)
+                    print()
+
+                    # 3 Create *.docx
+                    if not glcombine:
+                        exportfilename = os.path.join(downloadDirectory, f'Wiki - {wikiname}.docx')
+                        WriteDocx(wikiDescription, exportfilename)
+                    else:
+                        wikiDescription = f'<h1>Сохранение: Wiki {wikiname}</h1>{wikiDescription}'
+                        wikiCombineDescription = wikiCombineDescription + wikiDescription
 
 
-            print(f'{Fore.CYAN}_________________________________________________________')
+        print(f'{Fore.CYAN}_________________________________________________________')
 
 
     # Combine one file
     if glcombine:
-        issuefilename = os.path.join(downloadDirectory, f'IssueCombine.docx')
-        WriteDocx(issueCombineDescription, issuefilename)
+        exportfiletype = 'Issue'
+        exporfilecontent = issueCombineDescription
+        if gliswiki:
+            exportfiletype = 'Wiki'
+            exporfilecontent = wikiCombineDescription
+
+        exportfilename = os.path.join(downloadDirectory, f'{exportfiletype}Combine.docx')
+        WriteDocx(exporfilecontent, exportfilename)
 
     # Delete Img file
     if not glsaveimg:
@@ -149,6 +205,7 @@ def main():
 
     print(f'{Fore.CYAN}Process completed, press Space...')
     keyboard.wait("space")
+
 
 if __name__ == "__main__":
     print(f"{Fore.CYAN}Last update: Cherepanov Maxim masygreen@gmail.com (c), 01.2022")
