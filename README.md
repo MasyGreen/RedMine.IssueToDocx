@@ -1,11 +1,12 @@
-# Convert RedMine Issue to DOCX
+# Convert RedMine Issue and Wiki to DOCX
 
 1. Set settings in **config.cfg** (run once *.exe to create struct file)
    1. [host], IP or DNS RedMine name (example: **http://192.168.1.1**)
    2. [apikey], *RedMine - User - API key*, RESTAPI must by On (example: **aldjfoeiwgj9348gn348**)
-   3. [issuesid], convert Issue ID list split *";"* (example: **1;2;114;9123**)
+   3. [issuesid], convert Issue ID or Wiki list split *";"* (example: **1;2;114;9123** or **id100/wiki/Help1;id103/wiki/Help2**)
    4. [saveimg], save Image in Folder (example: **true**)
    5. [combine], combine result in one file **IssueCombine.docx** (example: **false**)
+   6. [iswiki], issuesid is wiki page (example: **true**)
 
 2. Run
 
@@ -13,9 +14,10 @@
 1. Настроить **config.cfg** (запустить единожды *.exe для создания шаблона файла)
    1. [host], IP или DNS имя RedMine (например: **http://192.168.1.1**)
    2. [apikey], *RedMine - Моя учетная запись - Ключ доступа к API*, RESTAPI должен быть глобально включен Администратором (например: **aldjfoeiwgj9348gn348**)
-   3. [issuesid], список Issue ID разделенных *";"* (например: **1;2;114;9123**)
+   3. [issuesid], список Issue ID или страниц Wiki разделенных *";"* (например: **1;2;114;9123** или **id100/wiki/Help1;id103/wiki/Help2**)
    4. [saveimg], сохранить картинки в той же директории (example: **true**)
    5. [combine], объединить результат в один файл **IssueCombine.docx** (example: **false**)
+   6. [iswiki], issuesid содержит ссылки на Wiki страницы (example: **true**)
 
 2. Запустить 
 
@@ -29,10 +31,12 @@ apikey = dq3inqgnqe8igqngninkkvekmviewrgir9384
 issuesid = 1677;318
 saveimg = false
 combine = false
+iswiki = true
 ```
 
 # Result
 Util crete files name *"Issue - [Issue ID].docx"* in new Folder or one file *IssueCombine.docx*
+Util crete files name *"Wiki - [Wiki name].docx"* in new Folder or one file *WikiCombine.docx*
 
 # How use pyinstaller whit HtmlToDocx
 
@@ -100,7 +104,4 @@ exe = EXE(pyz,
           target_arch=None,
           codesign_identity=None,
           entitlements_file=None , icon='Icon.ico')
-
 ```
-
-
