@@ -3,6 +3,7 @@ import os
 import shutil  # save img locally
 import uuid
 from datetime import datetime
+import re
 
 import keyboard
 import requests  # request img from web
@@ -11,7 +12,7 @@ from colorama import Fore
 from htmldocx import HtmlToDocx
 from redminelib import Redmine
 
-
+# Read config
 def ReadConfig(filepath):
     print(f'{Fore.YELLOW}Start ReadConfig')
 
@@ -69,7 +70,7 @@ def ReadConfig(filepath):
         print(f'{Fore.GREEN}Create config: {Fore.BLUE}{filepath},{config_file}')
         return False
 
-
+# Write DOCX
 def WriteDocx(issueDescription, filename):
     print(f'{Fore.YELLOW}Write *.docx: {filename}')
 
@@ -77,7 +78,7 @@ def WriteDocx(issueDescription, filename):
     docx = new_parser.parse_html_string(issueDescription)
     docx.save(filename)
 
-
+# Download IMG
 def DownloadIMG(description, imgScrs, downloadDirectory, imagesavelist):
     for item in imgScrs:
         imgScr = item.get("src")
@@ -112,6 +113,23 @@ def DownloadIMG(description, imgScrs, downloadDirectory, imagesavelist):
 
     return description
 
+#  1) Delete empty string
+#  2) LowDown <hX> on 1 livel
+def EditBlock(curblok):
+    sresult = ""
+    for curstr in curblok.split('\n'):
+        if curstr.strip() != '':
+            hlist = re.findall(r'<h\d*', curstr)
+            if len(hlist) > 0:
+                hitem = hlist[0].replace("<h", "").strip()
+                try:
+                    newhitem = int(hitem) + 1
+                    curstr = curstr.replace(f"<h{hitem}", f"<h{newhitem}").replace(f"/h{hitem}>", f"/h{newhitem}>")
+                except:
+                    curstr = curstr
+            sresult = sresult + curstr + '\n'
+
+    return sresult
 
 def main():
     redmine = Redmine(glhost, key=glapikey)
@@ -135,7 +153,6 @@ def main():
         if issueid != "":
             indx = indx + 1
             print(f'{Fore.GREEN}Process {indx}: {issueid=}')
-            print(f'{gliswiki=}')
 
             if not gliswiki:
                 if issueid.isdigit():
@@ -144,6 +161,8 @@ def main():
                     # 1 Get RedMine Issue Description
                     issue = redmine.issue.get(issueid, include=[])
                     issueDescription = issue.description
+                    if glcombine:
+                        issueDescription = EditBlock(issue.description)
                     issueDescription = f'<h1>{issue.subject}</h1>{issueDescription}'
 
                     # Process image
@@ -160,7 +179,6 @@ def main():
                         exportfilename = os.path.join(downloadDirectory, f'Issue - {issueid}.docx')
                         WriteDocx(issueDescription, exportfilename)
                     else:
-                        issueDescription = f'<h1>Сохранение: Issue {issueid}</h1>{issueDescription}'
                         issueCombineDescription = issueCombineDescription + issueDescription
             else:
                 print(f'Get RedMine Wiki Description: {issueid=}')
@@ -173,7 +191,9 @@ def main():
                     # 1 Get RedMine Wiki Description
                     wiki = redmine.wiki_page.get(wikiname, project_id=projectid, include=[])
                     wikiDescription = wiki.text
-                    issueDescription = f'<h1>{wiki.title}</h1>{wikiDescription}'
+                    if glcombine:
+                        wikiDescription = EditBlock(wikiDescription)
+                        wikiDescription = f'<h1>{wiki.title}</h1>{wikiDescription}' # double header
 
                     # Process image
                     # 2.1 Collect Scr list
@@ -188,7 +208,6 @@ def main():
                         exportfilename = os.path.join(downloadDirectory, f'Wiki - {wikiname}.docx')
                         WriteDocx(wikiDescription, exportfilename)
                     else:
-                        wikiDescription = f'<h1>Сохранение: Wiki {wikiname}</h1>{wikiDescription}'
                         wikiCombineDescription = wikiCombineDescription + wikiDescription
 
         print(f'{Fore.CYAN}_________________________________________________________')
