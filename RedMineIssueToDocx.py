@@ -73,10 +73,16 @@ def ReadConfig(filepath):
 # Write DOCX
 def WriteDocx(issueDescription, filename):
     print(f'{Fore.YELLOW}Write *.docx: {filename}')
+    try:
+        new_parser = HtmlToDocx()
+        docx = new_parser.parse_html_string(issueDescription)
+        docx.save(filename)
+    except Exception as e:
+        htmlfilename = f'{filename}.html'
+        print(f'{Fore.RED}Error write *.docx: {filename}\n{e}\nFile save as: {htmlfilename}')
+        with open(htmlfilename, 'a', encoding='utf-8') as f:
+            f.write(f"{issueDescription}")
 
-    new_parser = HtmlToDocx()
-    docx = new_parser.parse_html_string(issueDescription)
-    docx.save(filename)
 
 # Download IMG
 def DownloadIMG(description, imgScrs, downloadDirectory, imagesavelist):
